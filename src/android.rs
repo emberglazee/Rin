@@ -29,7 +29,7 @@ fn get_sessions() -> Arc<RwLock<HashMap<EngineHandle, AndroidSession>>> {
 
 #[unsafe(no_mangle)]
 pub extern "system" fn Java_com_rin_RinLib_createEngine(
-    _env: EnvUnowned,
+    mut env: EnvUnowned,
     _class: JClass,
     width: jint,
     height: jint,
@@ -44,12 +44,23 @@ pub extern "system" fn Java_com_rin_RinLib_createEngine(
             .with_tag("RinNative"),
     );
 
-    let home_dir_str: String = home_dir.to_string();
-    let username_str: String = if username.to_string().is_empty() {
-        "user".to_string()
-    } else {
-        username.to_string()
-    };
+    let home_dir_str: String = env
+        .with_env(|env| -> jni::errors::Result<String> {
+            let java_str = env.get_string(&home_dir)?;
+            Ok(java_str.into())
+        })
+        .resolve::<jni::errors::ThrowRuntimeExAndDefault>();
+
+    let mut username_str: String = env
+        .with_env(|env| -> jni::errors::Result<String> {
+            let java_str = env.get_string(&username)?;
+            Ok(java_str.into())
+        })
+        .resolve::<jni::errors::ThrowRuntimeExAndDefault>();
+
+    if username_str.is_empty() {
+        username_str = "user".to_string();
+    }
 
     log::info!(
         "Creating Engine: {}x{}, HOME={}, USER={}",
