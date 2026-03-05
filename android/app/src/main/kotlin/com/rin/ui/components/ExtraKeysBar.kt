@@ -67,6 +67,8 @@ fun ExtraKeysBar(
     onKeyPress: (String) -> Unit,
     onCtrlToggle: (Boolean) -> Unit,
     onRepeatStateChange: (Boolean) -> Unit = {},
+    sessionName: String = "Session 1",
+    onSessionButtonClick: () -> Unit = {},
     modifier: Modifier = Modifier
 ) {
     var ctrlActive by remember { mutableStateOf(false) }
@@ -77,6 +79,26 @@ fun ExtraKeysBar(
             .padding(horizontal = 4.dp, vertical = 4.dp),
         verticalArrangement = Arrangement.spacedBy(4.dp)
     ) {
+        FilledTonalButton(
+            onClick = onSessionButtonClick,
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(34.dp),
+            shape = RoundedCornerShape(6.dp),
+            colors = ButtonDefaults.filledTonalButtonColors(
+                containerColor = MaterialTheme.colorScheme.surfaceVariant,
+                contentColor = MaterialTheme.colorScheme.primary
+            ),
+            contentPadding = PaddingValues(horizontal = 12.dp, vertical = 0.dp)
+        ) {
+            Text(
+                text = "⊞ $sessionName",
+                fontSize = 11.sp,
+                fontWeight = FontWeight.SemiBold,
+                maxLines = 1
+            )
+        }
+
         KeyRow(
             keys = row1Keys,
             ctrlActive = ctrlActive,
