@@ -1,0 +1,114 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<issues format="6" by="lint 9.0.0" type="baseline" client="gradle" dependencies="false" name="AGP (9.0.0)" variant="all" version="9.0.0">
+
+    <issue
+        id="ModifierParameter"
+        message="Modifier parameter should be the first optional parameter"
+        errorLine1="    modifier: Modifier = Modifier"
+        errorLine2="    ~~~~~~~~">
+        <location
+            file="src/main/kotlin/com/rin/ui/components/ExtraKeysBar.kt"
+            line="72"
+            column="5"/>
+    </issue>
+
+    <issue
+        id="ModifierParameter"
+        message="Modifier parameter should be the first optional parameter"
+        errorLine1="    modifier: Modifier = Modifier,"
+        errorLine2="    ~~~~~~~~">
+        <location
+            file="src/main/kotlin/com/rin/ui/components/TerminalSurface.kt"
+            line="36"
+            column="5"/>
+    </issue>
+
+    <issue
+        id="ExpiredTargetSdkVersion"
+        message="Google Play requires that apps target API level 33 or higher."
+        errorLine1="        targetSdk = 28"
+        errorLine2="        ~~~~~~~~~~~~~~">
+        <location
+            file="build.gradle.kts"
+            line="13"
+            column="9"/>
+    </issue>
+
+    <issue
+        id="AutoboxingStateCreation"
+        message="Prefer `mutableIntStateOf` instead of `mutableStateOf`"
+        errorLine1="    var renameIndex by remember { mutableStateOf(-1) }"
+        errorLine2="                                  ~~~~~~~~~~~~~~">
+        <location
+            file="src/main/kotlin/com/rin/ui/components/SessionDialog.kt"
+            line="52"
+            column="35"/>
+    </issue>
+
+    <issue
+        id="AutoboxingStateCreation"
+        message="Prefer `mutableIntStateOf` instead of `mutableStateOf`"
+        errorLine1="    var showDeleteConfirm by remember { mutableStateOf(-1) }"
+        errorLine2="                                        ~~~~~~~~~~~~~~">
+        <location
+            file="src/main/kotlin/com/rin/ui/components/SessionDialog.kt"
+            line="54"
+            column="41"/>
+    </issue>
+
+    <issue
+        id="AutoboxingStateCreation"
+        message="Prefer `mutableLongStateOf` instead of `mutableStateOf`"
+        errorLine1="    var lastInputTime by remember { mutableStateOf(System.currentTimeMillis()) }"
+        errorLine2="                                    ~~~~~~~~~~~~~~">
+        <location
+            file="src/main/kotlin/com/rin/ui/components/TerminalSurface.kt"
+            line="45"
+            column="37"/>
+    </issue>
+
+    <issue
+        id="UnusedResources"
+        message="The resource `R.drawable.ic_launcher_foreground` appears to be unused"
+        errorLine1="&lt;vector xmlns:android=&quot;http://schemas.android.com/apk/res/android&quot; android:width=&quot;108dp&quot; android:height=&quot;108dp&quot; android:viewportWidth=&quot;108&quot; android:viewportHeight=&quot;108&quot;>"
+        errorLine2="^">
+        <location
+            file="src/main/res/drawable/ic_launcher_foreground.xml"
+            line="2"
+            column="1"/>
+    </issue>
+
+    <issue
+        id="UseKtx"
+        message="Use the KTX extension function `SharedPreferences.edit` instead?"
+        errorLine1="    context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)"
+        errorLine2="    ^">
+        <location
+            file="src/main/kotlin/com/rin/ui/screen/SetupScreen.kt"
+            line="57"
+            column="5"/>
+    </issue>
+
+    <issue
+        id="UseKtx"
+        message="Use the KTX extension function `String.toUri` instead?"
+        errorLine1="                            val intent = Intent(Intent.ACTION_VIEW, Uri.parse(&quot;https://github.com/pavelc4/Rin&quot;))"
+        errorLine2="                                                                    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/kotlin/com/rin/ui/screen/SetupScreen.kt"
+            line="233"
+            column="69"/>
+    </issue>
+
+    <issue
+        id="ClickableViewAccessibility"
+        message="Custom view `TerminalCanvasView` overrides `onTouchEvent` but not `performClick`"
+        errorLine1="    override fun onTouchEvent(event: MotionEvent): Boolean {"
+        errorLine2="                 ~~~~~~~~~~~~">
+        <location
+            file="src/main/kotlin/com/rin/ui/components/TerminalSurface.kt"
+            line="204"
+            column="18"/>
+    </issue>
+
+</issues>
