@@ -1,5 +1,6 @@
 package com.rin.ui.screen
 
+import android.view.View
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -21,6 +22,8 @@ fun TerminalScreen(
     modifier: Modifier = Modifier
 ) {
     var ctrlPressed by remember { mutableStateOf(false) }
+    var keyRepeating by remember { mutableStateOf(false) }
+    var terminalView by remember { mutableStateOf<View?>(null) }
 
     Column(
         modifier = modifier
@@ -31,6 +34,7 @@ fun TerminalScreen(
         TerminalSurface(
             engineHandle = engineHandle,
             ctrlPressed = ctrlPressed,
+            cursorBlinkEnabled = !keyRepeating,
             modifier = Modifier
                 .fillMaxWidth()
                 .weight(1f),
@@ -38,19 +42,25 @@ fun TerminalScreen(
                 if (engineHandle != 0L) {
                     RinLib.write(engineHandle, data)
                 }
-            }
+            },
+            onViewReady = { view -> terminalView = view }
         )
 
         ExtraKeysBar(
             onKeyPress = { code ->
                 if (engineHandle != 0L) {
                     RinLib.write(engineHandle, code.toByteArray())
+                    terminalView?.invalidate()
                 }
             },
             onCtrlToggle = { active ->
                 ctrlPressed = active
             },
+            onRepeatStateChange = { repeating ->
+                keyRepeating = repeating
+            },
             modifier = Modifier.fillMaxWidth()
         )
     }
 }
+

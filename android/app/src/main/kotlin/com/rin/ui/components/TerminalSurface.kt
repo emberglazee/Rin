@@ -32,8 +32,10 @@ import com.rin.ui.theme.rememberTerminalColorScheme
 fun TerminalSurface(
     engineHandle: Long,
     ctrlPressed: Boolean,
+    cursorBlinkEnabled: Boolean = true,
     modifier: Modifier = Modifier,
-    onInput: (ByteArray) -> Unit = {}
+    onInput: (ByteArray) -> Unit = {},
+    onViewReady: (android.view.View) -> Unit = {}
 ) {
     var fontSize by remember { mutableFloatStateOf(11f) }
     var ctrlState by remember { mutableStateOf(ctrlPressed) }
@@ -48,14 +50,23 @@ fun TerminalSurface(
         onDispose { }
     }
 
+    val currentBlinkEnabled by androidx.compose.runtime.rememberUpdatedState(cursorBlinkEnabled)
+
     androidx.compose.runtime.LaunchedEffect(lastInputTime) {
         cursorVisible = true
         viewRef?.invalidate()
         kotlinx.coroutines.delay(500)
         while (true) {
-            cursorVisible = !cursorVisible
+            cursorVisible = if (currentBlinkEnabled) !cursorVisible else true
             viewRef?.invalidate()
             kotlinx.coroutines.delay(500)
+        }
+    }
+
+    androidx.compose.runtime.LaunchedEffect(cursorBlinkEnabled) {
+        if (!cursorBlinkEnabled) {
+            cursorVisible = true
+            viewRef?.invalidate()
         }
     }
 
@@ -81,6 +92,7 @@ fun TerminalSurface(
                 this.cursorVisibleProvider = { cursorVisible }
                 this.colorScheme = colorScheme
                 viewRef = this
+                onViewReady(this)
             }
         },
         modifier = modifier,
