@@ -19,6 +19,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.graphics.toArgb
+import com.rin.permission.StoragePermissionHelper
 import com.rin.service.TerminalSessionService
 import com.rin.terminal.SessionManager
 import com.rin.ui.screen.SetupScreen
@@ -62,6 +63,58 @@ class MainActivity : ComponentActivity() {
         } else {
             Log.w("Rin", "Native library librpkg_cli.so not found in $nativeDir")
         }
+
+        // Install rin-perm-storage
+        val permStorageScript = File(binDir, "rin-perm-storage")
+        val prefix = filesDir.absolutePath
+        permStorageScript.writeText("""
+            #!/system/bin/sh
+            PERM_FILE="$prefix/.storage_permission"
+            REQUEST_FILE="$prefix/.rin_request_perm"
+
+            if [ -f "${'$'}PERM_FILE" ]; then
+                echo ""
+                echo "\033[32m✓ Storage permission already granted!\033[0m"
+                echo ""
+                exit 0
+            fi
+
+            echo ""
+            echo "\033[36m  ____  _       \033[0m"
+            echo "\033[36m |  _ \(_)_ __  \033[0m"
+            echo "\033[36m | |_) | | '_ \ \033[0m"
+            echo "\033[36m |  _ <| | | | |\033[0m"
+            echo "\033[36m |_| \_\_|_| |_|\033[0m"
+            echo ""
+            echo "\033[33mRequesting storage permission...\033[0m"
+            echo "\033[90mPlease grant access in the system dialog.\033[0m"
+            echo ""
+
+            # Signal Kotlin layer to show permission dialog
+            echo "request" > "${'$'}REQUEST_FILE"
+
+            # Poll for result (max 60 seconds)
+            COUNTER=0
+            while [ ${'$'}COUNTER -lt 120 ]; do
+                if [ -f "${'$'}PERM_FILE" ]; then
+                    echo "\033[32m✓ Storage permission granted!\033[0m"
+                    echo "\033[33mYou can now use rpkg commands.\033[0m"
+                    echo ""
+                    rm -f "${'$'}REQUEST_FILE"
+                    exit 0
+                fi
+                sleep 0.5
+                COUNTER=${'$'}((COUNTER + 1))
+            done
+
+            echo "\033[31m✗ Permission request timed out.\033[0m"
+            echo "\033[33mPlease try again: rin-perm-storage\033[0m"
+            echo ""
+            rm -f "${'$'}REQUEST_FILE"
+            exit 1
+        """.trimIndent() + "\n")
+        permStorageScript.setExecutable(true)
+        Log.i("Rin", "Installed rin-perm-storage script")
     }
 
     private fun startTerminalService() {
@@ -107,9 +160,50 @@ class MainActivity : ComponentActivity() {
                         export LD_LIBRARY_PATH=$prefix/usr/lib:${"$"}{LD_LIBRARY_PATH}
                         PS1="rin@${"$"}USER:~${"$"} "
                     """.trimIndent() + "\n")
+                    
+                    // Create rpkg wrapper
+                    val binDir = File(filesDir, "usr/bin")
+                    binDir.mkdirs()
+                    val rpkgWrapper = File(binDir, "rpkg-real")
+                    val rpkgScript = File(binDir, "rpkg")
+                    
+                    if (rpkgScript.exists() && !rpkgWrapper.exists() && !rpkgScript.isDirectory) {
+                        try {
+                            // Check symlink
+                            val isSymlink = try {
+                                android.system.Os.readlink(rpkgScript.absolutePath)
+                                true
+                            } catch (e: Exception) {
+                                false
+                            }
+                            
+                            if (isSymlink) {
+                                // Rename symlink
+                                rpkgScript.renameTo(rpkgWrapper)
+                                
+                                // Create wrapper
+                                rpkgScript.writeText("""
+                                    #!/system/bin/sh
+                                    PERM_FILE="$prefix/.storage_permission"
+                                    if [ ! -f "${"$"}PERM_FILE" ]; then
+                                        echo ""
+                                        echo "\033[31m\033[1mError: Storage permission required!\033[0m"
+                                        echo "\033[33mRun 'rin-perm-storage' to grant access before using rpkg\033[0m"
+                                        echo ""
+                                        exit 1
+                                    fi
+                                    exec $prefix/usr/bin/rpkg-real "${"$"}@"
+                                """.trimIndent())
+                                rpkgScript.setExecutable(true)
+                            }
+                        } catch (e: Exception) {
+                            Log.e("Rin", "Failed to create rpkg wrapper: ${e.message}")
+                        }
+                    }
 
                     val sessionManager = remember {
                         SessionManager(
+                            context = this@MainActivity,
                             homeDir = homeDir.absolutePath,
                             username = currentUser
                         )
@@ -138,11 +232,42 @@ class MainActivity : ComponentActivity() {
         }
     }
 
+    override fun onResume() {
+        super.onResume()
+        val triggerFile = File(filesDir, ".rin_request_perm")
+        if (triggerFile.exists()) {
+            if (StoragePermissionHelper.hasSystemStoragePermission(this)) {
+                StoragePermissionHelper.setStoragePermissionGranted(this, true)
+                val permFile = File(filesDir, ".storage_permission")
+                permFile.writeText("granted")
+                triggerFile.delete()
+                Log.i("Rin", "Storage permission detected on resume, marker written")
+            }
+        }
+    }
+
     override fun onDestroy() {
         if (serviceBound) {
             unbindService(serviceConnection)
             serviceBound = false
         }
         super.onDestroy()
+    }
+    
+    override fun onRequestPermissionsResult(
+        requestCode: Int,
+        permissions: Array<String>,
+        grantResults: IntArray
+    ) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults)
+        if (requestCode == RinPermStorage.REQUEST_CODE_STORAGE) {
+            val granted = grantResults.isNotEmpty() && 
+                         grantResults.all { it == android.content.pm.PackageManager.PERMISSION_GRANTED }
+            if (granted) {
+                StoragePermissionHelper.setStoragePermissionGranted(this, true)
+                val permFile = File(filesDir, ".storage_permission")
+                permFile.writeText("granted")
+            }
+        }
     }
 }
