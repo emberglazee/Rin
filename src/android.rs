@@ -14,8 +14,6 @@ type EngineHandle = jlong;
 struct AndroidSession {
     engine: Arc<Mutex<TerminalEngine>>,
     pty: Arc<Mutex<Pty>>,
-    // We keep these to ensure they live as long as the session
-    // reader_thread: Option<thread::JoinHandle<()>>,
 }
 
 static SESSIONS: OnceLock<Arc<RwLock<HashMap<EngineHandle, AndroidSession>>>> = OnceLock::new();
@@ -36,6 +34,7 @@ pub extern "system" fn Java_com_rin_RinLib_createEngine(
     font_size: f32,
     home_dir: JString,
     username: JString,
+    has_storage_permission: jint,
 ) -> jlong {
     #[cfg(feature = "android")]
     android_logger::init_once(
@@ -85,7 +84,7 @@ pub extern "system" fn Java_com_rin_RinLib_createEngine(
     // 2. Write startup banner
     {
         let mut engine_guard = engine.lock().unwrap();
-        let banner = concat!(
+        let mut banner = String::from(concat!(
             "\x1b[36m",
             r"  ____  _       ",
             "\r\n",
@@ -105,7 +104,23 @@ pub extern "system" fn Java_com_rin_RinLib_createEngine(
             "\r\n",
             " \x1b[33mType '\x1b[1mhelp\x1b[0m\x1b[33m' for available commands\x1b[0m\r\n",
             "\r\n",
-        );
+        ));
+        
+        // Add storage permission warning if not granted
+        if has_storage_permission == 0 {
+            banner.push_str(concat!(
+                " \x1b[31m\x1b[1m⚠ Storage permission required!\x1b[0m\r\n",
+                " \x1b[33mRun '\x1b[1mrin-perm-storage\x1b[0m\x1b[33m' to grant access\x1b[0m\r\n",
+                " \x1b[90mPackage operations will fail without permission\x1b[0m\r\n",
+                "\r\n",
+            ));
+        } else {
+            banner.push_str(concat!(
+                " \x1b[32m✓ Storage permission granted\x1b[0m\r\n",
+                "\r\n",
+            ));
+        }
+        
         let _ = engine_guard.write(banner.as_bytes());
     }
 
@@ -207,6 +222,33 @@ pub extern "system" fn Java_com_rin_RinLib_write(
         }
     } else {
         -2 // Handle not found
+    }
+}
+
+#[unsafe(no_mangle)]
+pub extern "system" fn Java_com_rin_RinLib_writeToEngine(
+    mut env: EnvUnowned,
+    _class: JClass,
+    handle: jlong,
+    data: JByteArray,
+) -> jint {
+    let outcome = env.with_env(|env| env.convert_byte_array(&data));
+    let bytes: Vec<u8> = outcome.resolve::<jni::errors::ThrowRuntimeExAndDefault>();
+    let bytes: &[u8] = &bytes;
+    let sessions_arc = get_sessions();
+    let sessions = sessions_arc.read().unwrap();
+    if let Some(session) = sessions.get(&handle) {
+        // Write directly to the Engine display buffer, NOT to PTY
+        let mut engine = session.engine.lock().unwrap();
+        match engine.write(bytes) {
+            Ok(_) => 0,
+            Err(e) => {
+                log::error!("Failed to write to engine: {}", e);
+                -1
+            }
+        }
+    } else {
+        -2
     }
 }
 
