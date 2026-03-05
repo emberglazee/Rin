@@ -32,7 +32,6 @@ android/gradle/gradle-daemon-jvm.properties
 *.jks
 keystore-b64.txt
 android/android/app/src/main/jniLibs/arm64-v8a/librpkg.so
-android/app/lint-baseline.xml
 android/app/release/app-release.apk
 android/app/release/output-metadata.json
 android/app/release/baselineProfiles/0/app-release.dm
