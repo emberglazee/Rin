@@ -55,7 +55,7 @@ private val row1Keys = listOf(
 private val row2Keys = listOf(
     ExtraKey("TAB", "\t"),
     ExtraKey("CTRL", "CTRL", isModifier = true),
-    ExtraKey("ALT", "ALT", isModifier = true),
+    ExtraKey("PASTE", "PASTE", isModifier = true),
     ExtraKey("◄", "\u001b[D", repeatable = true),
     ExtraKey("▼", "\u001b[B", repeatable = true),
     ExtraKey("►", "\u001b[C", repeatable = true),
@@ -66,6 +66,7 @@ private val row2Keys = listOf(
 fun ExtraKeysBar(
     onKeyPress: (String) -> Unit,
     onCtrlToggle: (Boolean) -> Unit,
+    onPaste: () -> Unit = {},
     onRepeatStateChange: (Boolean) -> Unit = {},
     sessionName: String = "Session 1",
     onSessionButtonClick: () -> Unit = {},
@@ -104,6 +105,7 @@ fun ExtraKeysBar(
             ctrlActive = ctrlActive,
             onKeyPress = onKeyPress,
             onCtrlToggle = { },
+            onPaste = onPaste,
             onRepeatStateChange = onRepeatStateChange
         )
         KeyRow(
@@ -114,6 +116,7 @@ fun ExtraKeysBar(
                 ctrlActive = active
                 onCtrlToggle(active)
             },
+            onPaste = onPaste,
             onRepeatStateChange = onRepeatStateChange
         )
     }
@@ -125,6 +128,7 @@ private fun KeyRow(
     ctrlActive: Boolean,
     onKeyPress: (String) -> Unit,
     onCtrlToggle: (Boolean) -> Unit,
+    onPaste: () -> Unit,
     onRepeatStateChange: (Boolean) -> Unit
 ) {
     Row(
@@ -148,7 +152,7 @@ private fun KeyRow(
                     onClick = {
                         when {
                             key.label == "CTRL" -> onCtrlToggle(!ctrlActive)
-                            key.label == "ALT" -> { }
+                            key.label == "PASTE" -> onPaste()
                             else -> onKeyPress(key.code)
                         }
                     },
