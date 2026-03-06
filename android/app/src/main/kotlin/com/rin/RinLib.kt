@@ -6,6 +6,7 @@ object RinLib {
     }
 
     external fun createEngine(width: Int, height: Int, fontSize: Float, homeDir: String, username: String, hasStoragePermission: Int): Long
+    external fun createRootEngine(width: Int, height: Int, fontSize: Float, homeDir: String, username: String, hasStoragePermission: Int, suPath: String): Long
     external fun destroyEngine(handle: Long)
     external fun write(handle: Long, data: ByteArray): Int
     external fun writeToEngine(handle: Long, data: ByteArray): Int
