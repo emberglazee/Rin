@@ -30,7 +30,6 @@ data class CommandHelp(
 )
 
 private val helpCommands = listOf(
-    // Package Management - Sync
     CommandHelp(
         command = "rpkg -Sy",
         description = "Sync package database from repository",
@@ -61,8 +60,6 @@ private val helpCommands = listOf(
         description = "Force reinstall a package",
         category = "Package Management"
     ),
-    
-    // Package Management - Remove & Query
     CommandHelp(
         command = "rpkg -R <package>",
         description = "Remove/uninstall a package",
@@ -73,8 +70,6 @@ private val helpCommands = listOf(
         description = "List all installed packages",
         category = "Package Management"
     ),
-    
-    // Basic Shell Commands
     CommandHelp(
         command = "ls",
         description = "List directory contents",
@@ -140,8 +135,6 @@ private val helpCommands = listOf(
         description = "Print text to terminal",
         category = "Basic Commands"
     ),
-    
-    // Terminal Control
     CommandHelp(
         command = "exit",
         description = "Exit current session",
@@ -196,14 +189,12 @@ fun HelpDialog(
                 
                 Divider()
                 
-                // Commands List
                 LazyColumn(
                     modifier = Modifier
                         .fillMaxSize()
                         .padding(horizontal = 16.dp),
                     verticalArrangement = Arrangement.spacedBy(8.dp)
                 ) {
-                    // Group by category
                     val groupedCommands = helpCommands.groupBy { it.category }
                     
                     groupedCommands.forEach { (category, commands) ->
