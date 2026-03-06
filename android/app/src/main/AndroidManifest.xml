@@ -8,12 +8,7 @@
     <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
     <uses-permission android:name="android.permission.MANAGE_EXTERNAL_STORAGE" />
 
-    <application 
-        android:allowBackup="true" 
-        android:label="Rin" 
-        android:icon="@drawable/rin"
-        android:supportsRtl="true" 
-        android:theme="@android:style/Theme.Material.NoActionBar">
+    <application android:allowBackup="true" android:label="Rin" android:icon="@mipmap/ic_launcher" android:roundIcon="@mipmap/ic_launcher_round" android:supportsRtl="true" android:theme="@android:style/Theme.Material.NoActionBar">
         <activity android:name=".MainActivity" android:exported="true" android:windowSoftInputMode="adjustResize">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
@@ -21,9 +16,7 @@
             </intent-filter>
         </activity>
 
-        <service
-            android:name=".service.TerminalSessionService"
-            android:exported="false" />
+        <service android:name=".service.TerminalSessionService" android:exported="false" />
     </application>
 
 </manifest>
