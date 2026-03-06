@@ -40,7 +40,7 @@ fun TerminalSurface(
     onInput: (ByteArray) -> Unit = {},
     onViewReady: (android.view.View) -> Unit = {}
 ) {
-    var fontSize by remember { mutableFloatStateOf(11f) }
+    var fontSize by remember { mutableFloatStateOf(8f) }
     var ctrlState by remember { mutableStateOf(ctrlPressed) }
     var cursorVisible by remember { mutableStateOf(true) }
     val colorScheme = rememberTerminalColorScheme()
@@ -115,7 +115,7 @@ fun TerminalSurface(
 
 class TerminalCanvasView(context: Context) : View(context), View.OnCreateContextMenuListener {
     var engineHandle: Long = 0L
-    var fontSize: Float = 18f
+    var fontSize: Float = 8f
         set(value) {
             field = value
             updatePaint()
@@ -177,7 +177,7 @@ class TerminalCanvasView(context: Context) : View(context), View.OnCreateContext
     private val scaleDetector = ScaleGestureDetector(context, object : ScaleGestureDetector.SimpleOnScaleGestureListener() {
         override fun onScale(detector: ScaleGestureDetector): Boolean {
             val newSize = fontSize * detector.scaleFactor
-            if (newSize in 8f..30f) {
+            if (newSize in 4f..30f) {
                 fontSize = newSize
                 handleResize()
                 invalidate()
